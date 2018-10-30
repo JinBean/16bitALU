@@ -1,15 +1,17 @@
-# 16bitALU
+# 16 bit ALU
 Building a 16 bit Arithmetic Logic Unit using a Mojo FPGA and Lucid
-This build requires an IO Shield for the mojo
+This build requires an IO Shield for the Mojo
 
-Building Project from Mojo IDE:
+
+#### Building Project from Mojo IDE:
+
   Upon creating a new project, select "IO Shield Base" from the From Example dropdown
   Under the Project tab, select "Add Components..."
   Under Miscellaneous, add components "Counter" and "Decoder" to the project
   
 
 
-General Outline of ALU:
+#### General Outline of ALU:
   1. Adder/Subtractor Unit
   2. Compare Unit
   3. Boolean Unit
@@ -28,7 +30,7 @@ General Outline of ALU:
                
                
                
-  Adder/Subtractor Unit:
+###  Adder/Subtractor Unit:
   
       Either adds a to b or subtracts a from b depending on alufn[0]
   
@@ -47,7 +49,7 @@ General Outline of ALU:
       v is true if there is an overflow during calculation
       n is true if sum is a negative number
   
-  Compare Unit:
+###  Compare Unit:
   
       Checks if a is equal to, less than, less than or equal to b depending on alufn[2:1]
   
@@ -62,7 +64,7 @@ General Outline of ALU:
       if (output of comparison is false):
          cmp[0] = 0
          
-  Boolean Unit:
+###  Boolean Unit:
   
     Outputs boolean operations such as AND, OR, XOR, "A", on a and b
   
@@ -79,7 +81,7 @@ General Outline of ALU:
       XOR         0110
       “A”         1010
       
-   Shifter Unit:
+ ###  Shifter Unit:
    
       Outputs a after it has been shifted by b bits. The type of shift depends on alufn[1:0]
    
@@ -95,7 +97,7 @@ General Outline of ALU:
       Mul                                         10
 
    
-   Multiplier Unit:
+ ###  Multiplier Unit:
       
       Multiplier Unit is not part of a basic ALU and has been added as an additional feature
       Multiplies two unsigned 8 bit binary numbers to produce a 16 bit binary number
@@ -106,7 +108,7 @@ General Outline of ALU:
       mul is a 16 bit binary number
 
 
-   ALU:
+ ###  ALU:
       
       Outputs the final 16 bits as well as z, v, n
       
@@ -115,7 +117,7 @@ General Outline of ALU:
       
       
       
-   alufn OPCODE:
+ ### alufn OPCODE:
       
       Operation       ALUFN[5:0]     
       ADD               000000
