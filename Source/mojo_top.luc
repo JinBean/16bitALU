@@ -720,7 +720,7 @@ module mojo_top (
     
     
     //test case for comparing a<=b
-    //output = false
+    //output = true
     
     state.CASECMPLET2:
     alumod.alufn = 6b110111;		//compare equals to
