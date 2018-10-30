@@ -1,5 +1,12 @@
 # 16bitALU
 Building a 16 bit Arithmetic Logic Unit using a Mojo FPGA and Lucid
+This build requires an IO Shield for the mojo
+
+Building Project from Mojo IDE:
+  Upon creating a new project, select "IO Shield Base" from the From Example dropdown
+  Under the Project tab, select "Add Components..."
+  Under Miscellaneous, add components "Counter" and "Decoder" to the project
+  
 
 
 General Outline of ALU:
@@ -80,7 +87,34 @@ General Outline of ALU:
       
       shift is a 16 bit binary number
       
-      Operation                               ALUFN[1:0]
+      Operation                               alufn[1:0]
       SHL (shift left)                            00
       SHR (shift right)                           01
       SRA (shift right with sign extension)       11
+
+
+
+   ALU:
+      
+      Outputs the final 16 bits as well as z, v, n
+      
+      Depending on alufn[5:4], selects one of the outputs from the adder, compare, boolean or shifter units
+      Always outputs z,v,n from the adder unit
+      
+      
+      
+   alufn OPCODE:
+      
+      Operation       ALUFN[5:0]     
+      ADD               000000
+      SUB               000001 
+      AND               011000 
+      OR                011110 
+      XOR               010110
+      “A”               011010
+      SHL               100000 
+      SHR               100001 
+      SRA               100011
+      CMPEQ             110011
+      CMPLT             110101 
+      CMPLE             110111
