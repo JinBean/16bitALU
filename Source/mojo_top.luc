@@ -36,7 +36,7 @@ module mojo_top (
       fsm state = {START, CASEADD, CASESUBTRACT1, CASESUBTRACT2, CASEOVERFLOW1, CASEOVERFLOW2, CASEAND,
                    CASEOR, CASEXOR, CASEA, CASESHL, CASESHR, CASESRA,
                     CASECMPEQT, CASECMPEQF, CASECMPLTT, CASECMPLTF,
-                    CASECMPLET1, CASECMPLEF, CASECMPLET2, MANUAL};
+                    CASECMPLET1, CASECMPLEF, CASECMPLET2, CASEMUL1, MANUAL};
       multi_seven_seg seg;  //using module multi_seven_seg
     }
   }
@@ -743,6 +743,37 @@ module mojo_top (
         }
     counter.d = counter.q+1;
     if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASEMUL1;}
+      
+      
+      
+    
+    
+    //test case for multiply
+    // 3 * 2 = 6
+      
+    state.CASEMUL1:
+    alumod.alufn = 6b100010;		
+    alumod.a = 16b0000000000000011;	
+    alumod.b = 16b0000000000000010;	
+    alu = alumod.alu;
+    seg.values[3] = 5d16;
+    seg.values[2] = 5d16;
+    seg.values[1] = 5d3;
+    seg.values[0] = 5d4;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; 
+    io_led[2] = alu[15:8];
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
       counter.d = 0;
       state.d = state.START;}
         
