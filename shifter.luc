@@ -1,0 +1,20 @@
+module shifter (
+    input a[16],                      //defining inputs and outputs of module
+    input b[16],
+    input alufn[6],
+    output s[16]
+  ) {
+
+  always {
+    case(alufn[1:0]){       
+      b00:                            //if alufn[1:0] == 00, perform bitwise left shift
+        s = a << b[3:0];
+      b01:                            //if alufn[1:0] == 01, perform bitwise right shift
+        s = a >> b[3:0];
+      b11:                            //if alufn[1:0] == 11, perform arithmetic bitwise right shift
+        s = $signed(a)>>>b[3:0];
+      default:
+        s = a;
+    }
+  }
+}
