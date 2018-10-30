@@ -1,0 +1,31 @@
+module adder (
+    input alufn[6],        //defining inputs and outputs of module
+    input a[16],  
+    input b[16],
+    output sum1[16],
+    output v,
+    output z,
+    output n
+  ) {
+  
+  sig sum[16];             
+
+  always {
+    
+    case(alufn[0]){
+        b0:                                                                         //if alufn[0]==0, add a to b
+          sum = a+b;
+          v = (((a[15])&(b[15])&(~sum[15])) | ((~a[15])&(~b[15])&(sum[15])));       //checking for addition overflow
+        b1:                                                                         //if alufn[0]==1, subtract b from a
+          sum = a-b;
+          v = (((a[15])&(~b[15])&(~sum[15])) | ((~a[15])&(b[15])&(sum[15])));       //checking for subtraction overflow
+        default:
+          sum = a+b; 
+          v = (((a[15])&(b[15])&(~sum[15])) | ((~a[15])&(~b[15])&(sum[15])));     
+    }
+        
+    sum1 = sum[15:0];     //output value of sum
+    z = ~|sum;            //z=1 if all bits of sum=0
+    n = sum[15];          //n=1 if most significant bit of sum=1 (if output sum is a negative number)
+  }
+}
