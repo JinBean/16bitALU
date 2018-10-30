@@ -1,0 +1,711 @@
+module mojo_top (
+    input clk,              // 50MHz clock
+    input rst_n,            // reset button (active low)
+    output led [8],         // 8 user controllable LEDs
+    input cclk,             // configuration clock, AVR ready when high
+    output spi_miso,        // AVR SPI MISO
+    input spi_ss,           // AVR SPI Slave Select
+    input spi_mosi,         // AVR SPI MOSI
+    input spi_sck,          // AVR SPI Clock
+    output spi_channel [4], // AVR general purpose pins (used by default to select ADC channel)
+    input avr_tx,           // AVR TX (FPGA RX)
+    output avr_rx,          // AVR RX (FPGA TX)
+    input avr_rx_busy,      // AVR RX buffer full
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4],      // Digit select on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield
+    input io_dip [3][8],    // DIP switches on IO Shield
+    //output count[8],
+    input button
+    ) {
+  
+  sig rst;                  // reset signal
+  
+  .clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;
+
+    
+    .rst(rst){
+      dff store_a[16];      //delay flip flops used for storing values of a,b,alufn
+      dff store_b[16];
+      dff store_alufn[6];
+
+      fsm state = {START, CASEADD, CASESUBTRACT1, CASESUBTRACT2, CASEOVERFLOW1, CASEOVERFLOW2, CASEAND,
+                   CASEOR, CASEXOR, CASEA, CASESHL, CASESHR, CASESRA,
+                    CASECMPEQT, CASECMPEQF, CASECMPLTT, CASECMPLTF,
+                    CASECMPLET1, CASECMPLEF, CASECMPLET2, MANUAL};
+      multi_seven_seg seg;  //using module multi_seven_seg
+    }
+  }
+  
+  sig a[16];
+  sig b[16];
+  sig alufn[6];
+  sig alu[16];
+   
+  alu alumod;               //creating instance of alu
+  
+  
+  
+  always {
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    
+    led = 8h00;             // turn LEDs off
+    spi_miso = bz;          // not using SPI
+    spi_channel = bzzzz;    // not using flags
+    avr_rx = bz;            // not using serial port
+    
+    io_led = 3x{{8h00}};    // turn LEDs off
+    io_seg = 8hff;          // turn segments off
+    io_sel = 4hf;           // select no digits
+    
+    seg.values = {5h0,5h0,5h0,5h0}; //initialising values of seven segment display
+    io_sel = ~4h0;
+    a = 8h0;                //initialising value of a
+    b = 8h0;                //initialising value of b
+    
+   
+    alufn = io_dip[0][7:2]; //assigning dip switches to alufn input
+    alumod.alufn = alufn;   //connecting alufn to input of module alu
+    alumod.a = a;           //connecting a to input of module alu
+    alumod.b = b;           //connecting a to input of module alu
+    alu = alumod.alu;       //connecting alu to output of module alu
+    io_led[0] = a[7:0];
+    io_led[1] = a[15:8];
+    
+    
+      
+    
+   
+    case (state.q){                 //initial start state of finite state machine
+     state.START:
+        if(io_button[1] == 1){      //if button is pressed, move to next state
+           state.d = state.CASEADD;
+        }
+        
+        if(io_dip[0][0]){           //if dip switch is down, change from auto testing to manual testing
+            state.d = state.MANUAL;
+        }
+    
+    
+    
+    state.MANUAL:                   //manual test state
+    if(io_dip[0][1]){               //if switch[0][1] is high, switch[1] and switch[2] become inputs for a
+        a[7:0] = io_dip[1];
+        a[15:8] = io_dip[2];
+        if(io_button[1]){           //if button is pressed, store input a into a d flip flop
+          store_a.d = a;          
+        }
+    } else {                        //if switch[0][1] is low, switch[1] and switch[2] become inputs for b
+        b[7:0] = io_dip[1];
+        b[15:8] = io_dip[2];
+        if(io_button[1]){           //if button is pressed, store input b into a d flip flop
+          store_b.d = b;
+        }
+      }
+
+      alufn = io_dip[0][7:2];       //assigning dip switches to alufn input
+      if(io_button[3]){             //if button is pressed, store input alufn into a d flip flip
+        store_alufn.d = alufn;}
+          
+      if(io_button[4]){             //if button is pressed, reset a,b,alufn
+        store_a.d = 16b0;
+        store_b.d = 16b0;
+        store_alufn.d = 6b0;}
+        
+      alumod.a = store_a.q;         //input stored value of a into module alu
+      alumod.b = store_b.q;         //input stored value of b into module alu
+      alumod.alufn = store_alufn.q; //input stored value of alufn into module alu
+      alu = alumod.alu;             //assigning alu to output of module alu
+      io_led[1] = alu[7:0];         //display alu output on onboard leds
+      io_led[2] = alu[15:8];
+      io_led[0][0] = 1;
+      io_led[0][7] = alumod.z;
+      io_led[0][6] = alumod.v;
+      io_led[0][5] = alumod.n;
+      if(io_button[2]){             //if button is pressed, return to initial state
+        state.d = state.START;}
+    
+        
+        
+        
+    //test case for adder
+    //21930 + 8360 = 30190
+    
+    state.CASEADD:	
+    alumod.alufn = 6b0;             //assigning predetermined value of alufn
+    alumod.a = 16b0101010110101010; //assigning predetermined value of a
+    alumod.b = 16b0010000001000100; //assigning predetermined value of b
+    alu = alumod.alu;			          //assign output of alu module to output of mojo
+      
+                                    //testing for error
+    if(io_dip[2][7]){
+      alu = alu + b1;}  
+    if(alu == b0111010111101110){   //testing for error                                    
+      seg.values[3] = 5d10;         //For lighting up seven segment display  
+      seg.values[2] = 5d13;
+      seg.values[1] = 5d13;
+      seg.values[0] = 5d8;
+      io_seg = ~seg.seg;
+      io_sel = ~seg.sel;}
+    else{                            //if alu output does not match expected output, display Err on seven segment display
+      seg.values[3] = 5d14;
+      seg.values[2] = 5d2;
+      seg.values[1] = 5d2;
+      seg.values[0] = 5d8;
+      io_seg = ~seg.seg;
+      io_sel = ~seg.sel;}
+        
+        
+    io_led[1] = alu[7:0];           //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8];          //left 8 leds display 8 second bits of sum                                   
+    io_led[0][7] = alumod.z;        //Displaying values of z,v,n on onboard leds
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+          
+    if(io_dip[0][0]){               //checking switch for manual state
+      state.d = state.MANUAL;}
+        
+    if(io_button[3]){               //switching to next test case
+      state.d = state.CASESUBTRACT1;}
+      
+    
+    
+    
+    //test case for subtractor
+    //17 - 8 = 9
+    
+    state.CASESUBTRACT1:
+    alumod.alufn = 6b1;
+    alumod.a = 16b0000000000010001;	
+    alumod.b = 16b0000000000001000;	
+    io_led[1] = alu[7:0]; 
+    io_led[2] = alu[15:8]; 
+    alu = alumod.alu;
+    seg.values[3] = 5d5;
+    seg.values[2] = 5d3;
+    seg.values[1] = 5d11;
+    seg.values[0] = 5d1;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+          state.d = state.CASESUBTRACT2;}
+          
+    
+    
+    //test case for subtractor
+    // -5 - (8) = -13
+    
+    state.CASESUBTRACT2:
+    alumod.alufn = 6b1;		
+    alumod.a = 16b1111111111111011;
+    alumod.b = 16b0000000000001000;
+    io_led[1] = alu[7:0]; 
+    io_led[2] = alu[15:8]; 
+    alu = alumod.alu;
+    seg.values[3] = 5d5;
+    seg.values[2] = 5d3;
+    seg.values[1] = 5d11;
+    seg.values[0] = 5d22;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.CASEOVERFLOW1;}
+          
+    
+    //test case for overflow (add)
+    //16384 + 16384 = -32768
+    
+    state.CASEOVERFLOW1:
+    alumod.alufn = 6b0;		
+    alumod.a = 16b0100000000000000;	
+    alumod.b = 16b0100000000000000;	
+    alu = alumod.alu;
+    seg.values[3] = 5d0;
+    seg.values[2] = 5d15;
+    seg.values[1] = 5d4;
+    seg.values[0] = 5d1;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; 
+    io_led[2] = alu[15:8];
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+          state.d = state.CASEOVERFLOW2;}
+          
+     
+     
+     
+    //test case for overflow (subtract)
+    //24576 - (-16384) = -24576
+    
+    state.CASEOVERFLOW2:
+    alumod.alufn = 6b1;		
+    alumod.a = 16b0110000000000000;
+    alumod.b = 16b1100000000000000;	
+    alu = alumod.alu;
+    seg.values[3] = 5d0;
+    seg.values[2] = 5d15;
+    seg.values[1] = 5d4;
+    seg.values[0] = 5d22;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.CASEAND;}
+          
+        
+    
+    //test case for AND boolean operation
+    
+    state.CASEAND:
+    alumod.alufn = 6b011000;		//subtraction operation of ALU
+    alumod.a = 16b0110100001010111;	//input a
+    alumod.b = 16b1010110000001000;	//input b
+    alu = alumod.alu;
+    
+    if(io_dip[2][7]){
+        alu = alu + b1;}
+    if(alu == 16b0010100000000000){
+        seg.values[3] = 5d10;
+        seg.values[2] = 5d16;
+        seg.values[1] = 5d13;
+        seg.values[0] = 5d8;
+        io_seg = ~seg.seg;
+        io_sel = ~seg.sel;}
+    else{
+        seg.values[3] = 5d14;
+        seg.values[2] = 5d2;
+        seg.values[1] = 5d2;
+        seg.values[0] = 5d8;
+        io_seg = ~seg.seg;
+        io_sel = ~seg.sel;}
+          
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+          state.d = state.CASEOR;}
+          
+        
+     
+     
+    //test case for OR boolean operation
+    
+    state.CASEOR:
+    alumod.alufn = 6b011110;		//subtraction operation of ALU
+    alumod.a = 16b0110100001010111;	//input a
+    alumod.b = 16b1010110000001000;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d0;
+    seg.values[2] = 5d2;
+    seg.values[1] = 5d8;
+    seg.values[0] = 5d8;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.CASEXOR;}
+          
+          
+    
+    //test case for XOR boolean operation
+          
+    state.CASEXOR:
+    alumod.alufn = 6b010110;		//subtraction operation of ALU
+    alumod.a = 16b0110100001010111;	//input a
+    alumod.b = 16b1010110000001000;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d17;
+    seg.values[2] = 5d0;
+    seg.values[1] = 5d2;
+    seg.values[0] = 5d8;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+          state.d = state.CASEA;}
+    
+    
+    
+    //test case for "A" boolean operation
+    
+    state.CASEA:
+    alumod.alufn = 6b011010;		//subtraction operation of ALU
+    alumod.a = 16b0110100001010111;	//input a
+    alumod.b = 16b1010110000001000;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d10;
+    seg.values[2] = 5d8;
+    seg.values[1] = 5d8;
+    seg.values[0] = 5d8;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.CASESHL;}
+          
+          
+          
+    
+    //test case for shift left
+          
+    state.CASESHL:
+    alumod.alufn = 6b100000;		//subtraction operation of ALU
+    alumod.a = 16b0100100001101100;	//input a
+    alumod.b = 16b0000000000000100;	//input b
+    alu = alumod.alu;
+        
+    if(io_dip[2][7]){
+        alu = alu + b1;}
+    if(alu == 16b1000011011000000){
+      seg.values[3] = 5d5;
+      seg.values[2] = 5d17;
+      seg.values[1] = 5d4;
+      seg.values[0] = 5d8;
+      io_seg = ~seg.seg;
+      io_sel = ~seg.sel;}
+    else{
+        seg.values[3] = 5d14;
+        seg.values[2] = 5d2;
+        seg.values[1] = 5d2;
+        seg.values[0] = 5d8;
+        io_seg = ~seg.seg;
+        io_sel = ~seg.sel;}
+       
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+          state.d = state.CASESHR;}
+          
+          
+          
+    //test case for shift right      
+          
+    state.CASESHR:
+    alumod.alufn = 6b100001;		//subtraction operation of ALU
+    alumod.a = 16b0110110011110000;	//input a
+    alumod.b = 16b0000000000000110;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d5;
+    seg.values[2] = 5d17;
+    seg.values[1] = 5d2;
+    seg.values[0] = 5d8;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.CASESRA;}
+    
+    
+    
+    
+    //test case for arithmetic shift right
+          
+    state.CASESRA:
+    alumod.alufn = 6b100011;		//subtraction operation of ALU
+    alumod.a = 16b1100100001100001;	//input a
+    alumod.b = 16b0000000000001100;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d5;
+    seg.values[2] = 5d2;
+    seg.values[1] = 5d10;
+    seg.values[0] = 5d8;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+       state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+        state.d = state.CASECMPEQT;}
+    
+    
+    
+    
+    
+    //test case for comparing a==b
+    //output = true
+    
+    state.CASECMPEQT:
+    alumod.alufn = 6b110011;		//compare equals to (True)
+    alumod.a = 16b0000000000000101;	//input a
+    alumod.b = 16b0000000000000101;	//input b
+    alu = alumod.alu;
+        
+    if(io_dip[2][7]){
+        alu = alu + b1;}
+    if(alu == 16b0000000000000001){
+        seg.values[3] = 5d12;
+        seg.values[2] = 5d6;
+        seg.values[1] = 5d14;
+        seg.values[0] = 5d1;
+        io_seg = ~seg.seg;
+        io_sel = ~seg.sel;}
+    else{
+        seg.values[3] = 5d14;
+        seg.values[2] = 5d2;
+        seg.values[1] = 5d2;
+        seg.values[0] = 5d8;
+        io_seg = ~seg.seg;
+        io_sel = ~seg.sel;}
+    
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.CASECMPEQF;}
+    
+    
+    
+    
+    //test case for comparing a==b
+    //output = false
+    
+    state.CASECMPEQF:
+    alumod.alufn = 6b110011;		//compare equals to
+    alumod.a = 16b0000000000000101;	//input a
+    alumod.b = 16b0000000000000100;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d12;
+    seg.values[2] = 5d6;
+    seg.values[1] = 5d14;
+    seg.values[0] = 5d22;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+          state.d = state.CASECMPLTT;}
+          
+          
+          
+          
+    //test case for comparing a<b
+    //output = true
+          
+    state.CASECMPLTT:
+    alumod.alufn = 6b110101;		//compare equals to
+    alumod.a = 16b0000000000000010;	//input a
+    alumod.b = 16b0000000000000011;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d12;
+    seg.values[2] = 5d6;
+    seg.values[1] = 5d4;
+    seg.values[0] = 5d1;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of alu output
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of alu output
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.CASECMPLTF;}
+    
+    
+    
+    
+    
+    
+    //test case for comparing a<b
+    //output = false
+    
+    state.CASECMPLTF:
+    alumod.alufn = 6b110101;		//compare equals to
+    alumod.a = 16b0000000000000110;	//input a
+    alumod.b = 16b1111111111111011;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d12;
+    seg.values[2] = 5d6;
+    seg.values[1] = 5d4;
+    seg.values[0] = 5d22;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+          state.d = state.CASECMPLET1;}
+          
+    
+    
+    
+    
+    //test case for comparing a<=b
+    //output = true
+    
+    state.CASECMPLET1:
+    alumod.alufn = 6b110111;		//compare equals to
+    alumod.a = 16b1111111111111100;	//input a
+    alumod.b = 16b0000000000000111;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d12;
+    seg.values[2] = 5d4;
+    seg.values[1] = 5d14;
+    seg.values[0] = 5d1;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.CASECMPLEF;}
+          
+          
+          
+          
+          
+    //Test case for comparing a<=b
+    //output = false
+    
+    state.CASECMPLEF:
+    alumod.alufn = 6b110111;		//compare equals to
+    alumod.a = 16b0000000000000110;	//input a
+    alumod.b = 16b0000000000000011;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d12;
+    seg.values[2] = 5d4;
+    seg.values[1] = 5d14;
+    seg.values[0] = 5d22;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[1] == 1){
+          state.d = state.CASECMPLET2;}
+    
+    
+    
+    
+    
+    //test case for comparing a<=b
+    //output = false
+    
+    state.CASECMPLET2:
+    alumod.alufn = 6b110111;		//compare equals to
+    alumod.a = 16b0000000000000101;	//input a
+    alumod.b = 16b0000000000000101;	//input b
+    alu = alumod.alu;
+    seg.values[3] = 5d12;
+    seg.values[2] = 5d4;
+    seg.values[1] = 5d14;
+    seg.values[0] = 5d30;
+    io_seg = ~seg.seg;
+    io_sel = ~seg.sel;
+    io_led[0][7] = alumod.z;
+    io_led[0][6] = alumod.v;
+    io_led[0][5] = alumod.n;
+    io_led[1] = alu[7:0]; //center 8 leds display first 8 bits of sum
+    io_led[2] = alu[15:8]; //left 8 leds display 8 second bits of sum
+    if(io_dip[0][0]){
+      state.d = state.MANUAL;
+        }
+    if(io_button[3] == 1){
+          state.d = state.START;}
+        
+           
+    }      
+  }
+}
