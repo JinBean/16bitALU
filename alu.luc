@@ -1,0 +1,51 @@
+module alu (
+    input alufn[6],                 //defining inputs and outputs of module
+    input a[16],
+    input b[16],
+
+    output alu[16],
+    output z,
+    output v,
+    output n
+  ) {
+
+  adder add;                        //initialising modules for use
+  compare comp;
+  boolean boole;
+  shifter shift;
+  
+  
+  always {
+    add.a = a;                      //assigning inputs to adder module
+    add.b = b;
+    add.alufn = alufn;
+    comp.v = add.v;                 //assigning inputs to compare module
+    comp.n = add.n;
+    comp.z = add.z;
+    comp.alufn = alufn;
+    boole.a = a;                    //assigning inputs to boolean module
+    boole.b = b;
+    boole.alufn = alufn;
+    shift.a = a;                    //assigning inputs to shifter module
+    shift.b = b;
+    shift.alufn = alufn;
+    
+    case(alufn[5:4]){
+      b00:                          //if alufn[5:4] == 00, select adder output 
+        alu = add.sum1; 
+      b01:                          //if alufn[5:4] == 00, select boolean output
+        alu = boole.bool;
+      b10:                          //if alufn[5:4] == 00, select shifter output
+        alu = shift.s;
+      b11:                          //if alufn[5:4] == 00, select compare output
+        alu = comp.cmp1;
+      default:
+        alu = 8b0;
+  }
+    
+    z = add.z;                      //assign z output
+    v = add.v;                      //assign v output   
+    n = add.n;                      //assign n output
+
+  }
+}
