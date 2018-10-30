@@ -1,0 +1,29 @@
+module boolean (
+    input alufn[6],               //defining inputs and outputs of module
+    input a[16],
+    input b[16],
+    output bool[16]
+  ) {
+  
+  var s;
+  var i;
+
+  always {
+    for(i=0; i<16; i++){          //loop through all the bits in a and b starting from least significant bit
+      s = c{b[i], a[i]};          //connect bits a[i] and b[i] such that s = ba, where s is a 2 bit number
+      case(s){
+        b00:                      //if a[i] = 0 and b[i] = 0, ith bit of bool = alufn[0]
+          bool[i] = alufn[0];
+        b01:                      //if a[i] = 1 and b[i] = 0, ith bit of bool = alufn[1]
+          bool[i] = alufn[1];
+        b10:                      //if a[i] = 0 and b[i] = 1, ith bit of bool = alufn[2]
+          bool[i] = alufn[2];
+        b11:                      //if a[i] = 1 and b[i] = 1, ith bit of bool = alufn[3]
+          bool[i] = alufn[3];
+        default:
+          bool[i] = alufn[0];
+      }
+    }
+    
+  }
+}
