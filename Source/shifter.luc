@@ -4,7 +4,11 @@ module shifter (
     input alufn[6],
     output s[16]
   ) {
-
+  
+  multiply multi;                     //using module multiply
+  multi.a = a[7:0];                   //initialising inputs of multiply
+  multi.b = b[7:0];
+  
   always {
     case(alufn[1:0]){       
       b00:                            //if alufn[1:0] == 00, perform bitwise left shift
@@ -13,6 +17,8 @@ module shifter (
         s = a >> b[3:0];
       b11:                            //if alufn[1:0] == 11, perform arithmetic bitwise right shift
         s = $signed(a)>>>b[3:0];
+      b10:
+        s = multi.mul;                //since shifter does not use case(b10), using to output multiply instead
       default:
         s = a;
     }
