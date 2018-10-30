@@ -1,0 +1,27 @@
+module compare (
+    input alufn[6],           //defining inputs and outputs of module
+    input v,
+    input z,
+    input n,
+    output cmp1[16]
+  ) {
+  
+  sig cmp;
+  
+  always {
+    
+    case(alufn[2:1]){
+      b01:                    //if alufn[2:1] == 01, compare a=b
+        cmp = z;
+      b10:                    //if alufn[2:1] == 10, compare a<b
+        cmp = n^v;            
+      b11:
+        cmp = z|(n^v);        //if alufn[2:1] == 11, compare a<=b
+      default:
+        cmp = b0;
+    }
+    
+    cmp1[15:1] = 15b0;        //first 15 bits of output are 0
+    cmp1[0] = cmp;
+  }
+}
