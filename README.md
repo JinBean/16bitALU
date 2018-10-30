@@ -5,9 +5,9 @@ This build requires an IO Shield for the Mojo
 
 #### Building Project from Mojo IDE:
 
-  Upon creating a new project, select "IO Shield Base" from the From Example dropdown
-  Under the Project tab, select "Add Components..."
-  Under Miscellaneous, add components "Counter" and "Decoder" to the project
+  Upon creating a new project, select "IO Shield Base" from the From Example dropdown.
+  Under the Project tab, select "Add Components...".
+  Under Miscellaneous, add components "Counter" and "Decoder" to the project.
   
 
 
