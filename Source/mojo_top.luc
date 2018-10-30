@@ -16,7 +16,6 @@ module mojo_top (
     output io_sel [4],      // Digit select on IO Shield
     input io_button [5],    // 5 buttons on IO Shield
     input io_dip [3][8],    // DIP switches on IO Shield
-    //output count[8],
     input button
     ) {
   
