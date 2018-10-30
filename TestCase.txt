@@ -1,0 +1,196 @@
+//ADDER TEST CASES
+state.caseAdd:			//ADDER Test Case 1(ADD): 21930+8260 = 30190
+alu.alufn = 000000;		//addition operation of ALU
+alu.a = 0101 0101 1010 1010;	//input a = 21930
+alu.b = 0010 0000 0100 0100;	//input b = 8258
+out = 0111 0101 1110 1110;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+state.caseSubtract:		//ADDER Test Case 2(SUB): 17-8 = 9
+alu.alufn = 000001;		//subtraction operation of ALU
+alu.a = 0000 0000 0001 0001;	//input a = 17
+alu.b = 0000 0000 0000 1000;	//input b = 8
+out = 0000 0000 0000 1001;	//Expected Output
+Z = 0 
+V = 0
+N = 0
+
+state.caseSubtract:		//ADDER Test Case 3(SUB2): -5-8 = -13
+alu.alufn = 000001;		//subtraction operation of ALU
+alu.a = 1111 1111 1111 1011;	//input a = -5
+alu.b = 0000 0000 0000 1000;	//input b = 8
+out = 1111111111110011;		//Expected Output
+Z = 0 
+V = 0
+N = 1
+
+state.caseOverflow:		//ADDER Test Case 4(OFL1): 16384+16384 = -32768
+alu.alufn = 000000;		//addition operation of ALU
+alu.a = 0100 0000 0000 0000;	//input a = 16384
+alu.b = 0100 0000 0000 0000;	//input b = 16384
+out = 1000 0000 0000 0000;	//Expected Output
+Z = 0 
+V = 1
+N = 1
+
+state.caseOverflow:		//ADDER Test Case 5(OFL2): 24576-(-16384) = -24576
+alu.alufn = 000001;		//subtraction operation of ALU
+alu.a = 0110 0000 0000 0000;	//input a = 24576
+alu.b = 1100 0000 0000 0000;	//input b = -16384
+out = 1010 0000 0000 0000;	//Expected Output
+Z = 0
+V = 1
+N = 1
+
+
+
+
+//BOOLEAN TEST CASES
+state.caseAND:			//BOOLEAN Test Case 1(AND)
+alu.alufn = 011000;		//AND operation of ALU
+alu.a = 0110 1000 0101 0111;	//input a
+alu.b = 1010 1100 0000 1000;	//input b
+out = 0010 1000 0000 0000;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+state.caseOR:			//BOOLEAN Test Case 2(OR)
+alu.alufn = 011110;		//OR operation of ALU
+alu.a = 0110 1000 0101 0111;	//input a
+alu.b = 1010 1100 0000 1000;	//input b
+out = 1110 1100 0101 1111;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+state.caseXOR:			//BOOLEAN Test Case 3(XOR)
+alu.alufn = 010110;		//XOR operation of ALU
+alu.a = 0110 1000 0101 0111;	//input a
+alu.b = 1010 1100 0000 1000;	//input b
+out = 1100 0100 0101 1111;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+state.caseA:			//BOOLEAN Test Case 4(A)
+alu.alufn = 011010;		//A operation of ALU
+alu.a = 0110 1000 0101 0111;	//input a
+alu.b = 1010 1100 0000 1000;	//input b
+out = 0110 1000 0101 0111;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+
+
+
+//SHIFTER TEST CASES
+state.caseSHL:			//SHIFTER Test Case 1(SHL)
+alu.alufn = 100000;		//SHL operation of ALU
+alu.a = 0100 1000 0110 1100;	//input a
+alu.b = 0000 0000 0000 0100;	//input b (shifting 4 bit)
+out = 1000 0110 1100 0000;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+state.caseSHR:			//SHIFTER Test Case 2(SHR)
+alu.alufn = 100001;		//SHR operation of ALU
+alu.a = 0110 1100 1111 0000;	//input a
+alu.b = 0000 0000 0000 0110;	//input b (shifting 6 bit)
+out = 0000 0001 1011 0011;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+state.caseSRA:			//SHIFTER Test Case 3(SRA)
+alu.alufn = 100011;		//SRA operation of ALU
+alu.a = 1100 1000 0110 0001;	//input a
+alu.b = 0000 0000 0000 1100;	//input b (shifting 12 bit)
+out = 1111 1111 1111 1100;	//Expected Output
+Z = 0
+V = 0
+N = 1
+
+
+
+
+//COMPARATOR TEST CASES
+state.caseCMPEQT:		//COMPARATOR Test Case 1(CPE1) [5 = 5]
+alu.alufn = 110011;		//CMPEQ operation of ALU
+alu.a = 0000 0000 0000 0101;	//input a = 5
+alu.b = 0000 0000 0000 0101;	//input b = 5
+out = 0000 0000 0000 0001;	//Expected Output
+Z = 1 
+V = 0
+N = 0
+
+state.caseCMPEQF:		//COMPARATOR Test Case 2(CPE2) [5 = 4]
+alu.alufn = 110011;		//CMPEQ operation of ALU
+alu.a = 0000 0000 0000 0101;	//input a = 5
+alu.b = 0000 0000 0000 0100;	//input b = 4
+out = 0000 0000 0000 0000;	//Expected Output
+Z = 0 
+V = 0
+N = 0
+
+state.caseCMPLTT:		//COMPARATOR Test Case 3(CPL1) [2 < 3]
+alu.alufn = 110101;		//CMPLT operation of ALU
+alu.a = 0000 0000 0000 0010;	//input a = 2
+alu.b = 0000 0000 0000 0011;	//input b = 3
+out = 0000 0000 0000 0001;	//Expected Output
+Z = 0
+V = 0
+N = 1
+
+state.caseCMPLTF:		//COMPARATOR Test Case 4(CPL2) [6 < -5]
+alu.alufn = 110101;		//CMPLT operation of ALU
+alu.a = 0000 0000 0000 0110;	//input a = 6
+alu.b = 1111 1111 1111 1011;	//input b = -5
+out = 0000 0000 0000 0000;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+state.caseCMPLET1:		//COMPARATOR Test Case 5(CLE1) [-4 <= 7]
+alu.alufn = 110111;		//CMPLE operation of ALU
+alu.a = 1111 1111 1111 1100;	//input a = -4
+alu.b = 0000 0000 0000 0111;	//input b = 7
+out = 0000 0000 0000 0001;	//Expected Output
+Z = 0
+V = 0
+N = 1
+
+state.caseCMPLEF:		//COMPARATOR Test Case 6(CLE2) [6 <= 3]
+alu.alufn = 110111;		//CMPLE operation of ALU
+alu.a = 0000 0000 0000 0110;	//input a = 6
+alu.b = 0000 0000 0000 0011;	//input b = 3
+out = 0000 0000 0000 0000;	//Expected Output
+Z = 0
+V = 0
+N = 0
+
+state.caseCMPLET2:		//COMPARATOR Test Case 7(CLE3)
+alu.alufn = 110111;		//CMPLE operation of ALU [5 = 5]
+alu.a = 0000 0000 0000 0101;	//input a = 5
+alu.b = 0000 0000 0000 0101;	//input b = 5
+out = 0000 0000 0000 0001;	//Expected Output
+Z = 1
+V = 0
+N = 0
+
+
+
+
+//Multiply Test Case
+state.caseMUL1;       //Multiplier Test Case 1
+alu.alufn = 100010;   //Mul operation of ALU
+alumod.a = 16b0000000000000011;	//input a = 3
+alumod.b = 16b0000000000000010;	//input b = 2
+out = 0000 0000 0000 0110;      //Expected Output
+Z = 0
+V = 0
+N = 0
