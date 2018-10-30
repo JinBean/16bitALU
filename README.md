@@ -14,6 +14,7 @@ General Outline of ALU:
   2. Compare Unit
   3. Boolean Unit
   4. Shifter Unit
+  5. Multiplier Unit (Extra)
   
   
   Input of ALU:  16 bit binary number a
@@ -91,7 +92,18 @@ General Outline of ALU:
       SHL (shift left)                            00
       SHR (shift right)                           01
       SRA (shift right with sign extension)       11
+      Mul                                         10
 
+   
+   Multiplier Unit:
+      
+      Multiplier Unit is not part of a basic ALU and has been added as an additional feature
+      Multiplies two unsigned 8 bit binary numbers to produce a 16 bit binary number
+      
+      Input: a[7:0], b[7:0]
+      Output: mul
+      
+      mul is a 16 bit binary number
 
 
    ALU:
@@ -118,3 +130,4 @@ General Outline of ALU:
       CMPEQ             110011
       CMPLT             110101 
       CMPLE             110111
+      MUL               100010
