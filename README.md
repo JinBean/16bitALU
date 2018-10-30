@@ -18,8 +18,11 @@ General Outline of ALU:
                  1 bit boolean v
                  1 bit boolean n
                
+               
+               
   Adder/Subtractor Unit:
-  Either adds a to b or subtracts a from b depending on alufn[0]
+  
+      Either adds a to b or subtracts a from b depending on alufn[0]
   
       Input: a, b, alufn[0]
       Output: sum, z, v, n
@@ -37,7 +40,8 @@ General Outline of ALU:
       n is true if sum is a negative number
   
   Compare Unit:
-  Checks if a is equal to, less than, less than or equal to b depending on alufn[2:1]
+  
+      Checks if a is equal to, less than, less than or equal to b depending on alufn[2:1]
   
       Input: a, b, alufn[2:1]
       Output: cmp
@@ -51,7 +55,8 @@ General Outline of ALU:
          cmp[0] = 0
          
   Boolean Unit:
-  Outputs boolean operations such as AND, OR, XOR, "A", on a and b
+  
+    Outputs boolean operations such as AND, OR, XOR, "A", on a and b
   
     Input: a, b, alufn[3:0]
     Output: bool
@@ -67,7 +72,8 @@ General Outline of ALU:
       “A”         1010
       
    Shifter Unit:
-   Outputs a after it has been shifted by b bits. The type of shift depends on alufn[1:0]
+   
+      Outputs a after it has been shifted by b bits. The type of shift depends on alufn[1:0]
    
       Input: a, b, alufn[1:0]
       Outut: shift
