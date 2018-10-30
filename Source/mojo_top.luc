@@ -31,6 +31,7 @@ module mojo_top (
       dff store_a[16];      //delay flip flops used for storing values of a,b,alufn
       dff store_b[16];
       dff store_alufn[6];
+      dff counter[29];      //counter to time the switching of states
 
       fsm state = {START, CASEADD, CASESUBTRACT1, CASESUBTRACT2, CASEOVERFLOW1, CASEOVERFLOW2, CASEAND,
                    CASEOR, CASEXOR, CASEA, CASESHL, CASESHR, CASESRA,
@@ -46,6 +47,7 @@ module mojo_top (
   sig alu[16];
    
   alu alumod;               //creating instance of alu
+  const TIMER = 28;         //constant for clock to switch states
   
   
   
@@ -89,6 +91,8 @@ module mojo_top (
         if(io_dip[0][0]){           //if dip switch is down, change from auto testing to manual testing
             state.d = state.MANUAL;
         }
+    
+    
     
     
     
@@ -168,9 +172,11 @@ module mojo_top (
           
     if(io_dip[0][0]){               //checking switch for manual state
       state.d = state.MANUAL;}
-        
-    if(io_button[3]){               //switching to next test case
-      state.d = state.CASESUBTRACT1;}
+            
+    counter.d = counter.q+1;                    //add 1 to clock every time code loops
+    if(io_button[3] | counter.q[TIMER]==1){     //if clock timer reaches TIMER or if button input is detected
+      counter.d = 0;                            //reset clock back to 0
+      state.d = state.CASESUBTRACT1;}           //switching to next test case
       
     
     
@@ -197,8 +203,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-          state.d = state.CASESUBTRACT2;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){     //io_buttons alternate between states as an easy alternative to debouncing
+      counter.d = 0;
+      state.d = state.CASESUBTRACT2;}
           
     
     
@@ -224,8 +232,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.CASEOVERFLOW1;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASEOVERFLOW1;}
           
     
     //test case for overflow (add)
@@ -250,8 +260,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-          state.d = state.CASEOVERFLOW2;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASEOVERFLOW2;}
           
      
      
@@ -278,8 +290,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.CASEAND;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASEAND;}
           
         
     
@@ -316,8 +330,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-          state.d = state.CASEOR;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASEOR;}
           
         
      
@@ -343,8 +359,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.CASEXOR;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASEXOR;}
           
           
     
@@ -369,8 +387,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-          state.d = state.CASEA;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASEA;}
     
     
     
@@ -395,8 +415,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.CASESHL;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASESHL;}
           
           
           
@@ -434,8 +456,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-          state.d = state.CASESHR;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASESHR;}
           
           
           
@@ -460,8 +484,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.CASESRA;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASESRA;}
     
     
     
@@ -487,8 +513,10 @@ module mojo_top (
     if(io_dip[0][0]){
        state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-        state.d = state.CASECMPEQT;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASECMPEQT;}
     
     
     
@@ -528,8 +556,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.CASECMPEQF;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASECMPEQF;}
     
     
     
@@ -556,8 +586,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-          state.d = state.CASECMPLTT;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASECMPLTT;}
           
           
           
@@ -584,8 +616,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.CASECMPLTF;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASECMPLTF;}
     
     
     
@@ -614,8 +648,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-          state.d = state.CASECMPLET1;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASECMPLET1;}
           
     
     
@@ -643,8 +679,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.CASECMPLEF;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASECMPLEF;}
           
           
           
@@ -672,8 +710,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[1] == 1){
-          state.d = state.CASECMPLET2;}
+    counter.d = counter.q+1;
+    if(io_button[1] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.CASECMPLET2;}
     
     
     
@@ -701,8 +741,10 @@ module mojo_top (
     if(io_dip[0][0]){
       state.d = state.MANUAL;
         }
-    if(io_button[3] == 1){
-          state.d = state.START;}
+    counter.d = counter.q+1;
+    if(io_button[3] | counter.q[TIMER]==1){
+      counter.d = 0;
+      state.d = state.START;}
         
            
     }      
