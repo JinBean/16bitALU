@@ -1,5 +1,5 @@
 module multiply (
-    input a[8],                         //defining inputs and outputs of module
+    input a[8],                            //defining inputs and outputs of module
     input b[8],
     output mul[16]
   ) {
@@ -16,17 +16,17 @@ module multiply (
   
   always {
    
-   p0[7:0] = (8x{a[0]}) & (b[7:0]);      //applying multiplication based on partial products for binary base by shifting bits
-   p1[7:0] = (8x{a[1]}) & (b[7:0]);
-   p2[7:0] = (8x{a[2]}) & (b[7:0]);
-   p3[7:0] = (8x{a[3]}) & (b[7:0]);
-   p4[7:0] = (8x{a[4]}) & (b[7:0]);
-   p5[7:0] = (8x{a[5]}) & (b[7:0]);
-   p6[7:0] = (8x{a[6]}) & (b[7:0]);
-   p7[7:0] = (8x{a[7]}) & (b[7:0]);
+   p0[7:0] = (8x{a[0]}) & (b[7:0]);         //applying multiplication based on partial products for binary base by shifting bits
+   p1[7:0] = ((8x{a[1]}) & (b[7:0])) << 1;
+   p2[7:0] = ((8x{a[2]}) & (b[7:0])) << 2;
+   p3[7:0] = ((8x{a[3]}) & (b[7:0])) << 3;
+   p4[7:0] = ((8x{a[4]}) & (b[7:0])) << 4;
+   p5[7:0] = ((8x{a[5]}) & (b[7:0])) << 5;
+   p6[7:0] = ((8x{a[6]}) & (b[7:0])) << 6;
+   p7[7:0] = ((8x{a[7]}) & (b[7:0])) << 7;
     
     
-   mul = p0 + c{p1,0} + c{p2,00} + c{p3,000} + c{p4,0000} + c{p5,00000} + c{p6,000000} + c{p7, 0000000};
+   mul = p0 + p1 + p2 + p3 + p4 + p5 + p6 + p7;
    
    
   }
