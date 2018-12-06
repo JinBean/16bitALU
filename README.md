@@ -120,7 +120,7 @@ Installation guide for Xilinx, MojoLoader and MojoIDE can be found [here](https:
       
       
       
- ### alufn OPCODE:
+ ### ALUFN OPCODE:
  
 |Operation|ALUFN[5:0]|
 |-------|--------|      
