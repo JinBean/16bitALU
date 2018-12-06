@@ -1,5 +1,6 @@
 # 16 bit ALU
-Building a 16 bit Arithmetic Logic Unit using a Mojo FPGA and Lucid
+Building a 16 bit Arithmetic Logic Unit using the Mojo FPGA and Lucid
+
 This build requires an IO Shield for the Mojo
 
 Installation guide for Xilinx, MojoLoader and MojoIDE can be found [here](https://github.com/weijin96/16bitALU/blob/master/InstallGuide.md).
