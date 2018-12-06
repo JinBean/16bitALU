@@ -1,5 +1,5 @@
 # 16 bit ALU
-Building a 16 bit Arithmetic Logic Unit using the Mojo FPGA and Lucid
+Building a 16 bit Arithmetic Logic Unit using the Mojo v3 FPGA and Lucid
 
 This build requires an IO Shield for the Mojo
 
@@ -121,18 +121,19 @@ Installation guide for Xilinx, MojoLoader and MojoIDE can be found [here](https:
       
       
  ### alufn OPCODE:
-      
-      Operation       ALUFN[5:0]     
-      ADD               000000
-      SUB               000001 
-      AND               011000 
-      OR                011110 
-      XOR               010110
-      “A”               011010
-      SHL               100000 
-      SHR               100001 
-      SRA               100011
-      CMPEQ             110011
-      CMPLT             110101 
-      CMPLE             110111
-      MUL               100010
+ 
+|Operation|ALUFN[5:0]|
+|-------|--------|      
+| ADD   | 000000 |
+| SUB   | 000001 |
+| AND   | 011000 |
+| OR    | 011110 |
+| XOR   | 010110 |
+| “A”   | 011010 |
+| SHL   | 100000 |
+| SHR   | 100001 |
+| SRA   | 100011 |
+| CMPEQ | 110011 |
+| CMPLT | 110101 |
+| CMPLE | 110111 |
+| MUL   | 100010 |
